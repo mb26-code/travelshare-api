@@ -1,0 +1,8 @@
+.env
+
+# --- Dependencies (NEVER commit these) ---
+node_modules/
+/pids
+/logs
+*.log
+npm-debug.log*
