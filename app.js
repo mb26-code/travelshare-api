@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 //import routes
-//const authRoutes = require('./routes/auth.routes');
+const authRoutes = require('./routes/auth.routes');
 //const mediaRoutes = require('./routes/media.routes');
 
 
@@ -14,14 +14,16 @@ app.use(cors()); //allow cross-origins requests (Android, ...)
 app.use(express.json()); //parse JSON automatically
 
 
-//define routes
-//app.use('/api/auth', authRoutes);
-//app.use('/api/media', mediaRoutes);
-
 //root/default route/endpoint
 app.get('/', (req, res) => {
   res.json({ ok: true, message: 'TravelShare API: Hello world!' });
 });
+
+
+//define routes
+app.use('/auth', authRoutes);
+
+
 
 //middleware to handle some errors
 app.use((err, req, res, next) => {

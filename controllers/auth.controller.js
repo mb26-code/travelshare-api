@@ -1,31 +1,37 @@
-const bcrypt = require('bcrypt');
+const authService = require('../services/auth.service');
 
-const db = require('../config/db');
-
-exports.signUp = async (req, res) => {
-    const { username, email, password } = req.body;
-
-    if (!username || !email || !password) {
-        return res.status(400).json({ error: 'All fields are required' });
+const register = async (req, res, next) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    try {
-        //check if user already exists
-        const existingUser = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-        if (existingUser.length > 0) return res.status(409).json({ error: 'Email already in use' });
-
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        //insert into DB
-        const newUser = await db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
-            [username, email, hashedPassword]);
-
-        //success
-        res.status(201).json({ message: 'User created successfully' });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    const result = await authService.register(email, password, name);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
 };
+
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Missing email or password' });
+    }
+
+    const result = await authService.login(email, password);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  register,
+  login
+};
+
