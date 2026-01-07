@@ -4,7 +4,7 @@ const cors = require('cors');
 
 //import routes
 const authRoutes = require('./routes/auth.routes');
-//const mediaRoutes = require('./routes/media.routes');
+const mediaRoutes = require('./routes/media.routes');
 
 
 const app = express();
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 
 //define routes
 app.use('/auth', authRoutes);
-
+app.use('/media', mediaRoutes);
 
 
 //middleware to handle some errors
