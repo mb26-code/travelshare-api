@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 //import routes
 const authRoutes = require('./routes/auth.routes');
@@ -12,6 +13,9 @@ const app = express();
 //global middleware
 app.use(cors()); //allow cross-origins requests (Android, ...)
 app.use(express.json()); //parse JSON automatically
+
+//serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 //root/default route/endpoint
