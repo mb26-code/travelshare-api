@@ -98,9 +98,64 @@ const getFrameDetails = async (frameId) => {
   }
 };
 
+const searchByText = async (query) => {
+  const connection = await db.getConnection();
+  try {
+    const searchTerm = `%${query}%`;
+    const [rows] = await connection.query(
+      `SELECT 
+        f.id, f.title, f.description, f.created_at, f.size, 
+        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
+        p.image as coverImage, p.latitude, p.longitude
+       FROM frame f
+       JOIN user_ u ON f.user_id = u.id
+       LEFT JOIN photograph p ON f.id = p.frame_id AND p.order_ = 0
+       WHERE f.visibility = 'public' 
+       AND (f.title LIKE ? OR f.description LIKE ?)
+       ORDER BY f.created_at DESC`,
+      [searchTerm, searchTerm]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+const searchByLocation = async (lat, lon, radiusKm = 10) => {
+  const connection = await db.getConnection();
+  try {
+    //6371 is the Earth radius in km
+    const [rows] = await connection.query(
+      `SELECT DISTINCT
+        f.id, f.title, f.description, f.created_at, f.size, 
+        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
+        p_cover.image as coverImage, p_cover.latitude, p_cover.longitude,
+        (
+          6371 * acos(
+            cos(radians(?)) * cos(radians(p.latitude)) * cos(radians(p.longitude) - radians(?)) + 
+            sin(radians(?)) * sin(radians(p.latitude))
+          )
+        ) AS distance
+       FROM photograph p
+       JOIN frame f ON p.frame_id = f.id
+       JOIN user_ u ON f.user_id = u.id
+       LEFT JOIN photograph p_cover ON f.id = p_cover.frame_id AND p_cover.order_ = 0
+       WHERE f.visibility = 'public'
+       HAVING distance < ?
+       ORDER BY distance ASC`,
+      [lat, lon, lat, radiusKm]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
 module.exports = {
   createFrame,
   getFeed,
-  getFrameDetails
+  getFrameDetails,
+  searchByText,
+  searchByLocation
 };
 

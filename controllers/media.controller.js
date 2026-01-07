@@ -50,9 +50,35 @@ const getFrameDetails = async (req, res, next) => {
   }
 };
 
+const search = async (req, res, next) => {
+  try {
+    const { q, lat, lon, radius } = req.query;
+
+    if (lat && lon) {
+      const results = await mediaService.searchByLocation(
+        parseFloat(lat), 
+        parseFloat(lon), 
+        radius ? parseFloat(radius) : 10
+      );
+      return res.status(200).json(results);
+    }
+
+    if (q) {
+      const results = await mediaService.searchByText(q);
+      return res.status(200).json(results);
+    }
+
+    return res.status(400).json({ error: 'Invalid search parameters' });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   postFrame,
   getFeed,
-  getFrameDetails
+  getFrameDetails,
+  search
 };
 

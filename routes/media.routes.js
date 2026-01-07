@@ -5,6 +5,7 @@ const upload = require('../middleware/upload.middleware');
 const authenticateToken = require('../middleware/auth.middleware');
 
 //public routes
+router.get('/frames/search', mediaController.search);
 router.get('/frames', mediaController.getFeed);
 router.get('/frames/:id', mediaController.getFrameDetails);
 
