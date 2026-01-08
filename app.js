@@ -9,14 +9,18 @@ const swaggerSpec = require("./swagger");
 //import routes
 const authRoutes = require('./routes/auth.routes');
 const mediaRoutes = require('./routes/media.routes');
+const { globalLimiter } = require('./middleware/rateLimiter');
 
 
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 //global middleware
 app.use(cors()); //allow cross-origins requests (Android, ...)
 app.use(express.json()); //parse JSON automatically
+app.use(globalLimiter); //rate limiter
 
 //documentation
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
