@@ -6,6 +6,8 @@ const path = require('path');
 //import routes
 const authRoutes = require('./routes/auth.routes');
 const mediaRoutes = require('./routes/media.routes');
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 
 
 const app = express();
@@ -13,6 +15,10 @@ const app = express();
 //global middleware
 app.use(cors()); //allow cross-origins requests (Android, ...)
 app.use(express.json()); //parse JSON automatically
+
+//documentation
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 //serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
