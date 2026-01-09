@@ -3,21 +3,17 @@ services:
   db:
     image: mysql:8.4
     container_name: travelshare-db
-    restart: no
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: MasterSonic42
-      MYSQL_DATABASE: TRAVELSHARE_DB
-      MYSQL_USER: default_user
-      MYSQL_PASSWORD: Sonic42
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3307:3306"
-      #maps localhost port 3307 to container port 3306
+      - "${DB_PORT}:3306"
     volumes:
       - db_data:/var/lib/mysql
-      #persists data even if the container stops
-
-      # Optional: Auto-run your schema on first start
-      # - ./travelshare_db_schema_v1.sql:/docker-entrypoint-initdb.d/schema.sql
 
 volumes:
   db_data:
+
