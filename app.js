@@ -8,6 +8,8 @@ const swaggerSpec = require("./swagger");
 
 //import routes
 const authRoutes = require('./routes/auth.routes');
+const frameRoutes = require('./routes/frame.routes');
+const photoRoutes = require('./routes/photo.routes');
 const mediaRoutes = require('./routes/media.routes');
 const { globalLimiter } = require('./middleware/rateLimiter');
 
@@ -26,10 +28,6 @@ app.use(globalLimiter); //rate limiter
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
-//serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-
 //root/default route/endpoint
 app.get('/', (req, res) => {
   res.json({ ok: true, message: 'TravelShare API: Hello world!' });
@@ -38,6 +36,8 @@ app.get('/', (req, res) => {
 
 //define routes
 app.use('/auth', authRoutes);
+app.use('/frames', frameRoutes);
+app.use('/photos', photoRoutes);
 app.use('/media', mediaRoutes);
 
 

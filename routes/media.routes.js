@@ -1,131 +1,82 @@
 const express = require('express');
 const router = express.Router();
-const mediaController = require('../controllers/media.controller');
-const upload = require('../middleware/upload.middleware');
-const authenticateToken = require('../middleware/auth.middleware');
+const path = require('path');
+const fs = require('fs');
 
 
 /**
  * @swagger
  * tags:
- *   name: Frames
- *   description: Consultation et publication de frames
+ * name: Media
+ * description: Accès aux fichiers statiques (Images)
  */
-
-//public routes
 
 /**
  * @swagger
- * /frames/search:
- *   get:
- *     summary: Recherche de frames
- *     tags: [Frames]
- *     parameters:
- *       - in: query
- *         name: q
- *         schema:
- *           type: string
- *         description: Terme de recherche
- *     responses:
- *       200:
- *         description: Résultats de recherche
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Frame'
+ * /media/photos/{filename}:
+ * get:
+ * summary: Télécharger l'image d'une photo
+ * tags: [Media]
+ * parameters:
+ * - in: path
+ * name: filename
+ * required: true
+ * schema:
+ * type: string
+ * description: Nom du fichier image
+ * responses:
+ * 200:
+ * description: Fichier image (JPEG/PNG)
+ * content:
+ * image/*:
+ * schema:
+ * type: string
+ * format: binary
+ * 404:
+ * description: Fichier introuvable
  */
-router.get('/frames/search', mediaController.search);
-
-
-/**
- * @swagger
- * /frames:
- *   get:
- *     summary: Récupère le feed public
- *     tags: [Frames]
- *     responses:
- *       200:
- *         description: Liste de frames
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Frame'
- */
-router.get('/frames', mediaController.getFeed);
-
+router.get('/photos/:filename', (req, res) => {
+  const filepath = path.join(__dirname, '../uploads/photos', req.params.filename);
+  if (fs.existsSync(filepath)) {
+    res.sendFile(filepath);
+  } else {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
 
 
 /**
  * @swagger
- * /frames/{id}:
- *   get:
- *     summary: Détails d'une frame
- *     tags: [Frames]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Détails de la frame
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Frame'
- *       404:
- *         description: Frame introuvable
+ * /media/avatars/{filename}:
+ * get:
+ * summary: Télécharger l'avatar d'un utilisateur
+ * tags: [Media]
+ * parameters:
+ * - in: path
+ * name: filename
+ * required: true
+ * schema:
+ * type: string
+ * description: Nom du fichier avatar
+ * responses:
+ * 200:
+ * description: Fichier image (JPEG/PNG)
+ * content:
+ * image/*:
+ * schema:
+ * type: string
+ * format: binary
+ * 404:
+ * description: Fichier introuvable
  */
-router.get('/frames/:id', mediaController.getFrameDetails);
-
-//authentified routes
-
-
-
-/**
- * @swagger
- * /frames:
- *   post:
- *     summary: Publier une frame (auth requis)
- *     tags: [Frames]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - photos
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               photos:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *     responses:
- *       201:
- *         description: Frame créée
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Frame'
- *       401:
- *         description: Token manquant ou invalide
- */
-router.post('/frames', authenticateToken, upload.array('photos', 10), mediaController.postFrame);
-
-
+router.get('/avatars/:filename', (req, res) => {
+  const filepath = path.join(__dirname, '../uploads/avatars', req.params.filename);
+  if (fs.existsSync(filepath)) {
+    res.sendFile(filepath);
+  } else {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
 
 module.exports = router;
 
