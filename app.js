@@ -2,9 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-//const swaggerUi = require("swagger-ui-express");
 
-//const swaggerSpec = require("./swagger");
 
 //import routes
 const authRoutes = require('./routes/auth.routes');
@@ -25,7 +23,7 @@ app.use(express.json()); //parse JSON automatically
 app.use(globalLimiter); //rate limiter
 
 //documentation
-//app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+//TO DO
 
 
 //root/default route/endpoint
