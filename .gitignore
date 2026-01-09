@@ -1,10 +1,19 @@
 .env
 
-# --- Dependencies (NEVER commit these) ---
+get-docker.sh
+
+uploads/*
+!uploads/photos/
+!uploads/avatars/
+uploads/photos/*
+uploads/avatars/*
+!uploads/photos/.gitkeep
+!uploads/avatars/.gitkeep
+
+
 node_modules/
 /pids
 /logs
 *.log
 npm-debug.log*
 
-get-docker.sh
