@@ -5,7 +5,6 @@ const photoController = require('../controllers/photo.controller');
 const upload = require('../middleware/upload.middleware');
 const authenticateToken = require('../middleware/auth.middleware');
 
-
 /**
  * @swagger
  * tags:
@@ -210,7 +209,7 @@ router.get('/:id/photos', photoController.getFramePhotos);
  * type: integer
  * photoMetadata:
  * type: string
- * description: "String JSON représentant un tableau d'objets pour la géolocalisation de chaque photo (ex: `[{latitude: 10, longitude: 20}, {latitude: 11, longitude: 21}]`)"
+ * description: "String JSON représentant un tableau d'objets pour la géolocalisation (ex: `[{latitude: 10, longitude: 20}]`)"
  * photos:
  * type: array
  * items:
@@ -231,10 +230,9 @@ router.get('/:id/photos', photoController.getFramePhotos);
  * 400:
  * description: Données invalides ou photo manquante
  * 401:
- * description: Non autorisé (Token manquant ou invalide)
+ * description: Non autorisé
  */
 router.post('/', authenticateToken, upload.array('photos', 10), frameController.postFrame);
-
 
 module.exports = router;
 

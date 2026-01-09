@@ -14,7 +14,7 @@ const photoController = require('../controllers/photo.controller');
  * /photos:
  * get:
  * summary: Récupérer des photos (Global ou par localisation)
- * description: Renvoie toutes les photos si aucun paramètre n'est fourni, ou filtre par proximité si latitude/longitude sont fournis.
+ * description: Renvoie toutes les photos ou filtre par proximité.
  * tags: [Photos]
  * parameters:
  * - in: query
@@ -32,7 +32,7 @@ const photoController = require('../controllers/photo.controller');
  * schema:
  * type: number
  * default: 10
- * description: Rayon de recherche en kilomètres (optionnel, défaut 10km)
+ * description: Rayon de recherche en km (optionnel)
  * responses:
  * 200:
  * description: Liste des photos trouvées
@@ -55,7 +55,7 @@ const photoController = require('../controllers/photo.controller');
  * type: number
  * distance:
  * type: number
- * description: Distance en km du point de recherche (uniquement si recherche géo)
+ * description: Distance en km (si recherche géo)
  */
 router.get('/', photoController.getPhotos);
 

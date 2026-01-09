@@ -3,7 +3,6 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 
-
 /**
  * @swagger
  * tags:
@@ -43,7 +42,6 @@ router.get('/photos/:filename', (req, res) => {
     res.status(404).json({ error: 'File not found' });
   }
 });
-
 
 /**
  * @swagger
