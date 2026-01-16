@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-const getAllFrames = async (limit = 20, query = null) => {
+const getAllFrames = async (limit = 100, query = null) => {
   const connection = await db.getConnection();
   try {
     let sql = `

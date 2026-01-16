@@ -3,7 +3,7 @@ const frameService = require('../services/frame.service');
 const getFrames = async (req, res, next) => {
   try {
     const { limit, q } = req.query;
-    const frames = await frameService.getAllFrames(limit || 20, q);
+    const frames = await frameService.getAllFrames(limit || 100, q);
     res.status(200).json(frames);
   } catch (error) {
     next(error);
