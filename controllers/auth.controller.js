@@ -13,6 +13,20 @@ const register = async (req, res, next) => {
   }
 };
 
+//verify email with code
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Missing email or code.' });
+    }
+    const result = await authService.verifyEmail(email, code);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -83,6 +97,7 @@ const getMe = async (req, res, next) => {
 
 module.exports = {
   register,
+  verifyEmail,
   login,
   requestPasswordReset,
   confirmPasswordReset,

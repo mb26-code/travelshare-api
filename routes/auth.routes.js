@@ -6,6 +6,7 @@ const { authLimiter } = require('../middleware/rateLimiter');
 
 //public routes
 router.post('/register', authLimiter, authController.register);
+router.post('/register/confirm', authLimiter, authController.verifyEmail);
 router.post('/login', authLimiter, authController.login);
 
 //password reset routes (No JWT required)
