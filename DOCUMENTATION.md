@@ -6,6 +6,33 @@
 
 ---
 
+Here is the rest of the documentation, rewritten in professional US English. I have added a **"General Information"** section at the very beginning to cover the **Rate Limiting** and **Middleware** details you requested.
+
+You should place the **General Information** section right after the **Base URL** definitions at the top of your file. The other sections (Frames, Photos, Comments, Media) can follow the Authentication section.
+
+---
+
+## ℹ️ 0. General Information & Limits
+
+### Rate Limiting
+
+To ensure fair usage and service stability, this API implements rate limiting via the `express-rate-limit` middleware. No API key is required at this stage, but limits are enforced based on IP address.
+
+* **Global Limit:** 420 requests per minute per IP.
+* **Authentication Limit:** 10 login/registration attempts per hour per IP (to prevent brute-force attacks).
+
+Headers containing rate limit status (e.g., `RateLimit-Limit`, `RateLimit-Remaining`) are included in the response.
+
+### File Uploads
+
+Image uploads are handled using `Multer`. Files are processed, renamed with a unique UUID, and stored locally on the server.
+
+* **Max Count:** Up to 8 photos per Frame.
+* **Accepted Format:** Standard image formats (JPEG, PNG, ...).
+
+
+---
+
 
 ## 🔐 1. Authentication
 
@@ -281,7 +308,7 @@ Creates a new frame with photos. This endpoint accepts `multipart/form-data`.
 * `description` (String): The description/caption.
 * `visibility` (String): One of `public`, `user_group`, or `private`.
 * `userGroupId` (Integer, Optional): Required if visibility is `user_group`.
-* `photos` (Files): Array of image files (max 10).
+* `photos` (Files): Array of image files (max 8).
 * `photoMetadata` (String JSON): A JSON string array containing metadata for each photo index.
 * Example: `[{"latitude": 48.85, "longitude": 2.35}, {}]`
 

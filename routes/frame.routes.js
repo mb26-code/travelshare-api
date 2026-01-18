@@ -10,7 +10,7 @@ const authenticateToken = require('../middleware/auth.middleware');
 router.get('/', frameController.getFrames);
 router.get('/:id', frameController.getFrameById);
 router.get('/:id/photos', photoController.getFramePhotos);
-router.post('/', authenticateToken, upload.array('photos', 10), frameController.postFrame);
+router.post('/', authenticateToken, upload.array('photos', 8), frameController.postFrame);
 
 //likes
 router.post('/:id/likes', authenticateToken, frameController.likeFrame);
