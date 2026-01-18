@@ -1,9 +1,24 @@
 const frameService = require('../services/frame.service');
+const jwt = require('jsonwebtoken');
+
+const getOptionalUserId = (req) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return null;
+  try {
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    return user.id;
+  } catch (e) {
+    return null;
+  }
+};
 
 const getFrames = async (req, res, next) => {
   try {
     const { limit, q } = req.query;
-    const frames = await frameService.getAllFrames(limit || 100, q);
+    const userId = getOptionalUserId(req);
+    
+    const frames = await frameService.getAllFrames(userId, limit || 100, q);
     res.status(200).json(frames);
   } catch (error) {
     next(error);
@@ -13,10 +28,12 @@ const getFrames = async (req, res, next) => {
 const getFrameById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const frame = await frameService.getFrameById(id);
+    const userId = getOptionalUserId(req);
+
+    const frame = await frameService.getFrameById(id, userId);
     
     if (!frame) {
-      return res.status(404).json({ error: 'Frame not found' });
+      return res.status(404).json({ error: 'Frame not found.' });
     }
     
     res.status(200).json(frame);
@@ -57,9 +74,42 @@ const postFrame = async (req, res, next) => {
   }
 };
 
+
+
+const likeFrame = async (req, res, next) => {
+  try {
+    await frameService.addLike(req.user.id, req.params.id);
+    res.status(200).json({ message: 'Liked' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const unlikeFrame = async (req, res, next) => {
+  try {
+    await frameService.removeLike(req.user.id, req.params.id);
+    res.status(200).json({ message: 'Unliked' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getFrameLikes = async (req, res, next) => {
+  try {
+    const result = await frameService.getFrameLikes(req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 module.exports = {
   getFrames,
   getFrameById,
-  postFrame
+  postFrame,
+  likeFrame,
+  unlikeFrame,
+  getFrameLikes
 };
 

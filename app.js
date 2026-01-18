@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth.routes');
 const frameRoutes = require('./routes/frame.routes');
 const photoRoutes = require('./routes/photo.routes');
 const mediaRoutes = require('./routes/media.routes');
+const commentRoutes = require('./routes/comment.routes.js');
 const { globalLimiter } = require('./middleware/rateLimiter');
 
 
@@ -37,6 +38,7 @@ app.use('/auth', authRoutes);
 app.use('/frames', frameRoutes);
 app.use('/photos', photoRoutes);
 app.use('/media', mediaRoutes);
+app.use('/comments', commentRoutes);
 
 
 //middleware to handle some errors

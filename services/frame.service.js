@@ -1,17 +1,21 @@
 const db = require('../config/db');
 
-const getAllFrames = async (limit = 100, query = null) => {
+
+const getAllFrames = async (currentUserId = null, limit = 100, query = null) => {
   const connection = await db.getConnection();
   try {
+    //we assume currentUserId is 0 or null if user/client is in signed out mode
     let sql = `
       SELECT 
         f.id, f.title, f.description, f.created_at, f.visibility, f.user_group_id, f.size,
-        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar
+        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id) as likeCount,
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked
       FROM frame f
       JOIN user_ u ON f.user_id = u.id
     `;
 
-    const params = [];
+    const params = [currentUserId || 0];
 
     if (query) {
       sql += ` WHERE f.title LIKE ? OR f.description LIKE ?`;
@@ -35,16 +39,8 @@ const getAllFrames = async (limit = 100, query = null) => {
     );
 
     return frames.map(frame => ({
-      id: frame.id,
-      title: frame.title,
-      description: frame.description,
-      created_at: frame.created_at,
-      visibility: frame.visibility,
-      userGroupId: frame.user_group_id,
-      authorId: frame.authorId,
-      authorName: frame.authorName,
-      authorAvatar: frame.authorAvatar,
-      size: frame.size,
+      ...frame,
+      isLiked: !!frame.isLiked, //convert 1/0 to boolean
       photos: photos
         .filter(p => p.frame_id === frame.id)
         .map(p => ({
@@ -61,21 +57,24 @@ const getAllFrames = async (limit = 100, query = null) => {
   }
 };
 
-const getFrameById = async (frameId) => {
+const getFrameById = async (frameId, currentUserId = null) => {
   const connection = await db.getConnection();
   try {
     const [frames] = await connection.query(
       `SELECT 
         f.id, f.title, f.description, f.created_at, f.visibility, f.user_group_id, f.size,
-        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar
+        u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id) as likeCount,
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked
        FROM frame f
        JOIN user_ u ON f.user_id = u.id
        WHERE f.id = ?`,
-      [frameId]
+      [currentUserId || 0, frameId]
     );
 
     if (frames.length === 0) return null;
     const frame = frames[0];
+    frame.isLiked = !!frame.isLiked;
 
     const [photos] = await connection.query(
       `SELECT id, order_, latitude, longitude, image
@@ -85,19 +84,7 @@ const getFrameById = async (frameId) => {
       [frameId]
     );
 
-    return {
-      id: frame.id,
-      title: frame.title,
-      description: frame.description,
-      created_at: frame.created_at,
-      visibility: frame.visibility,
-      userGroupId: frame.user_group_id,
-      authorId: frame.authorId,
-      authorName: frame.authorName,
-      authorAvatar: frame.authorAvatar,
-      size: frame.size,
-      photos: photos
-    };
+    return { ...frame, photos };
 
   } finally {
     connection.release();
@@ -154,9 +141,40 @@ const createFrame = async (userId, data, filenames, photoMetadata) => {
   }
 };
 
+
+
+const addLike = async (userId, frameId) => {
+  try {
+    await db.query('INSERT INTO like_ (user_id, frame_id) VALUES (?, ?)', [userId, frameId]);
+    return { message: 'Frame liked' };
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      throw { status: 400, message: 'Frame already liked' };
+    }
+    throw error;
+  }
+};
+
+const removeLike = async (userId, frameId) => {
+  const [result] = await db.query('DELETE FROM like_ WHERE user_id = ? AND frame_id = ?', [userId, frameId]);
+  if (result.affectedRows === 0) {
+    throw { status: 400, message: 'Frame was not liked' };
+  }
+  return { message: 'Frame unliked' };
+};
+
+const getFrameLikes = async (frameId) => {
+  const [rows] = await db.query('SELECT user_id FROM like_ WHERE frame_id = ?', [frameId]);
+  const likers = rows.map(r => r.user_id);
+  return { amount: likers.length, likers };
+};
+
 module.exports = {
   getAllFrames,
   getFrameById,
-  createFrame
+  createFrame,
+  addLike,
+  removeLike,
+  getFrameLikes
 };
 
