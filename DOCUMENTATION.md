@@ -1,4 +1,4 @@
-# Documentation API TravelShare
+# TravelShare API Documentation
 
 **Base URL (Prod):** `https://api.travelshare.mb-labs.dev`
 
