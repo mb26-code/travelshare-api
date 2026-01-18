@@ -10,7 +10,8 @@ const getAllFrames = async (currentUserId = null, limit = 100, query = null) => 
         f.id, f.title, f.description, f.created_at, f.visibility, f.user_group_id, f.size,
         u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
         (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id) as likeCount,
-        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked,
+        (SELECT COUNT(*) FROM comment_ WHERE frame_id = f.id) as commentCount
       FROM frame f
       JOIN user_ u ON f.user_id = u.id
     `;
@@ -65,7 +66,8 @@ const getFrameById = async (frameId, currentUserId = null) => {
         f.id, f.title, f.description, f.created_at, f.visibility, f.user_group_id, f.size,
         u.id as authorId, u.name_ as authorName, u.profile_picture as authorAvatar,
         (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id) as likeCount,
-        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked
+        (SELECT COUNT(*) FROM like_ WHERE frame_id = f.id AND user_id = ?) as isLiked,
+        (SELECT COUNT(*) FROM comment_ WHERE frame_id = f.id) as commentCount
        FROM frame f
        JOIN user_ u ON f.user_id = u.id
        WHERE f.id = ?`,
