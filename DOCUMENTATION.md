@@ -192,27 +192,44 @@ Formally logs the user out. Since JWTs are stateless, this endpoint is primarily
 
 ---
 
-## 🖼️ 2. Frames (Publications)
+## 🖼️ 2. Frames
 
-### Récupérer toutes les frames (Fil d'actu)
+The core content of the application. Frames represent travel posts that can contain multiple photos, descriptions, and geolocation data.
+
+### Get All Frames (Feed)
+
+Retrieves a list of frames, typically used to populate the main feed (Discovery Wall).
 
 * **URL:** `GET /frames`
-* **Query Params (Optionnels):**
-* `?limit=20` (Défaut: 20)
-* `?q=Paris` (Recherche textuelle dans titre/description)
+* **Query Parameters:**
+* `limit` (Optional): Maximum number of frames to return (default: `100`).
+* `q` (Optional): Search query string to filter by title or description.
 
 
-* **Réponse (200):** Liste d'objets Frame.
+* **Response (200 OK):**
 ```json
 [
   {
     "id": 1,
-    "title": "Trip to Japan",
-    "description": "Tokyo Tower view!",
-    "authorName": "Mehdi",
-    "authorAvatar": "avatar.jpg", // ou null
+    "title": "Sunset in Kyoto",
+    "description": "Walking through the Arashiyama bamboo grove.",
+    "createdAt": "2025-11-23T10:00:00.000Z",
+    "visibility": "public",
+    "userGroupId": null,
+    "size": 2,
+    "authorId": 42,
+    "authorName": "Alice Traveler",
+    "authorAvatar": "avatar_42.jpg",
+    "likeCount": 15,
+    "isLiked": true,
     "photos": [
-       { "id": 10, "image": "abc-123.jpg", "latitude": 35.6, "longitude": 139.7 }
+      {
+        "id": 101,
+        "order_": 0,
+        "latitude": 35.0116,
+        "longitude": 135.7681,
+        "image": "photo_1700000000.jpg"
+      }
     ]
   }
 ]
@@ -221,50 +238,143 @@ Formally logs the user out. Since JWTs are stateless, this endpoint is primarily
 
 
 
-### Détails d'une frame
+### Get Frame Details
+
+Retrieves the complete information for a specific frame.
 
 * **URL:** `GET /frames/:id`
-* **Réponse (200):** Objet Frame complet (même structure que ci-dessus).
+* **Response (200 OK):**
+```json
+{
+  "id": 1,
+  "title": "Sunset in Kyoto",
+  "description": "Walking through the Arashiyama bamboo grove.",
+  "createdAt": "2025-11-23T10:00:00.000Z",
+  "visibility": "public",
+  "authorId": 42,
+  "authorName": "Alice Traveler",
+  "authorAvatar": "avatar_42.jpg",
+  "likeCount": 15,
+  "isLiked": false,
+  "photos": [
+    { "id": 101, "order_": 0, "image": "img1.jpg", "latitude": 35.0, "longitude": 135.7 },
+    { "id": 102, "order_": 1, "image": "img2.jpg", "latitude": 35.0, "longitude": 135.7 }
+  ]
+}
 
-### Publier une frame (Authentifié 🔒)
+```
+
+
+
+### Post a Frame
+
+Creates a new frame with photos. This endpoint accepts `multipart/form-data`.
 
 * **URL:** `POST /frames`
-* **Header:** `Authorization: Bearer <VOTRE_TOKEN>`
-* **Body (Multipart/Form-Data):**
-* `title` (String)
-* `description` (String)
-* `visibility` (String: 'public', 'user_group', 'private')
-* `photos` (Fichiers, min 1, max 10)
-* `photoMetadata` (String JSON) : Tableau d'objets pour la géolocalisation de chaque photo. L'ordre correspond à l'ordre d'upload des fichiers.
-* Exemple : `[{"latitude": 48.85, "longitude": 2.35}, {"latitude": 43.61, "longitude": 3.87}]`
+* **Headers:**
+* `Authorization: Bearer <YOUR_TOKEN>`
+* `Content-Type: multipart/form-data`
 
 
+* **Form Data Fields:**
+* `title` (String): The title of the frame.
+* `description` (String): The description/caption.
+* `visibility` (String): One of `public`, `user_group`, or `private`.
+* `userGroupId` (Integer, Optional): Required if visibility is `user_group`.
+* `photos` (Files): Array of image files (max 10).
+* `photoMetadata` (String JSON): A JSON string array containing metadata for each photo index.
+* Example: `[{"latitude": 48.85, "longitude": 2.35}, {}]`
+
+
+
+
+* **Response (201 Created):**
+```json
+{
+  "frameId": 15,
+  "message": "Frame created successfully"
+}
+
+```
+
+
+
+### Like a Frame
+
+Adds a "like" to a frame from the current user.
+
+* **URL:** `POST /frames/:id/likes`
+* **Headers:** `Authorization: Bearer <YOUR_TOKEN>`
+* **Response (200 OK):**
+```json
+{
+  "message": "Liked"
+}
+
+```
+
+
+* **Error (400 Bad Request):** If the frame is already liked.
+
+### Unlike a Frame
+
+Removes a "like" from a frame.
+
+* **URL:** `DELETE /frames/:id/likes`
+* **Headers:** `Authorization: Bearer <YOUR_TOKEN>`
+* **Response (200 OK):**
+```json
+{
+  "message": "Unliked"
+}
+
+```
+
+
+
+### Get Frame Likes
+
+Retrieves the list of users who liked a specific frame.
+
+* **URL:** `GET /frames/:id/likes`
+* **Response (200 OK):**
+```json
+{
+  "amount": 5,
+  "likers": [1, 4, 12, 42, 55]
+}
+
+```
 
 
 
 ---
 
-## 📷 3. Photos (Recherche & Carte)
+## 📷 3. Photos
 
-### Récupérer les photos (Mode Carte)
+Endpoints dedicated to searching and retrieving individual photos, primarily for the Map view.
+
+### Search Photos (Map / Geolocation)
+
+Retrieves photos based on geographic coordinates or fetches all photos if no coordinates are provided.
 
 * **URL:** `GET /photos`
-* **Query Params (Pour filtrer par zone):**
-* `?latitude=48.85`
-* `?longitude=2.35`
-* `?radiusKm=10` (Rayon de recherche)
+* **Query Parameters:**
+* `latitude` (Float): Center latitude.
+* `longitude` (Float): Center longitude.
+* `radiusKm` (Float, Optional): Search radius in kilometers (default: `10`).
 
 
-* **Réponse (200):** Liste de Photos.
+* **Response (200 OK):**
 ```json
 [
   {
-    "id": 10,
+    "id": 101,
     "frame_id": 1,
-    "image": "abc-123.jpg",
-    "latitude": 48.85,
-    "longitude": 2.35,
-    "distance": 0.5 // Si recherche géo
+    "image": "photo_123.jpg",
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "distance": 0.54
   }
 ]
 
@@ -272,22 +382,140 @@ Formally logs the user out. Since JWTs are stateless, this endpoint is primarily
 
 
 
-### Photos d'une frame spécifique
+### Get Photos for a Frame
+
+Retrieves all photos belonging to a specific frame ID.
 
 * **URL:** `GET /frames/:id/photos`
-* **Réponse (200):** Liste des photos de cette frame uniquement.
+* **Response (200 OK):**
+```json
+[
+  {
+    "id": 101,
+    "order_": 0,
+    "latitude": 48.85,
+    "longitude": 2.35,
+    "image": "photo_123.jpg"
+  }
+]
+
+```
+
+
 
 ---
 
-## 📂 4. Accès aux Fichiers (Images)
+## 💬 4. Comments
 
-Pour afficher une image dans l'application Android (Glide/Picasso) :
+Manage user comments on frames.
 
-* **Photo de voyage :** `<Base URL>/media/photos/<filename>`
-* Ex: `https://api.travelshare.mb-labs.dev/media/photos/c6d0fc48-ae49.jpg`
+### Get Comments for a Frame
+
+Retrieves all comments associated with a specific frame.
+
+* **URL:** `GET /frames/:id/comments`
+* **Response (200 OK):**
+```json
+[
+  {
+    "id": 10,
+    "userId": 42,
+    "authorName": "Alice",
+    "authorAvatar": "alice_avatar.jpg",
+    "content": "Amazing view!",
+    "postedOn": "2026-01-18",
+    "postedAt": "14:30",
+    "edited": false
+  }
+]
+
+```
 
 
-* **Avatar utilisateur :** `<Base URL>/media/avatars/<filename>`
+
+### Post a Comment
+
+Adds a new comment to a frame.
+
+* **URL:** `POST /frames/:id/comments`
+* **Headers:** `Authorization: Bearer <YOUR_TOKEN>`
+* **Body (JSON):**
+```json
+{
+  "content": "I wish I was there!"
+}
+
+```
+
+
+* **Response (201 Created):**
+```json
+{
+  "id": 11,
+  "userId": 5,
+  "frameId": 1,
+  "content": "I wish I was there!",
+  "created_at": "2026-01-18T14:35:00.000Z"
+}
+
+```
+
+
+
+### Edit a Comment
+
+Updates the content of an existing comment. Users can only edit their own comments.
+
+* **URL:** `PATCH /comments/:id`
+* **Headers:** `Authorization: Bearer <YOUR_TOKEN>`
+* **Body (JSON):**
+```json
+{
+  "content": "I wish I was there! (Edit: Actually, I am going next week!)"
+}
+
+```
+
+
+* **Response (200 OK):**
+```json
+{
+  "message": "Comment updated successfully"
+}
+
+```
+
+
+
+### Delete a Comment
+
+Permanently removes a comment. Users can only delete their own comments.
+
+* **URL:** `DELETE /comments/:id`
+* **Headers:** `Authorization: Bearer <YOUR_TOKEN>`
+* **Response (200 OK):**
+```json
+{
+  "message": "Comment deleted successfully"
+}
+
+```
+
+
 
 ---
+
+## 📂 5. Media Assets
+
+Static endpoints for retrieving user-uploaded content. These URLs are constructed by the client using the Base URL.
+
+### Photos
+
+* **URL Pattern:** `GET /media/photos/:filename`
+* **Example:** `https://api.travelshare.mb-labs.dev/media/photos/upload_1700000000.jpg`
+
+### Avatars
+
+* **URL Pattern:** `GET /media/avatars/:filename`
+* **Example:** `https://api.travelshare.mb-labs.dev/media/avatars/user_42.jpg`
 
